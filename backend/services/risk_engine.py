@@ -1,40 +1,44 @@
-from backend.services.data_service import get_environmental_data
-from backend.utils.risk_ml import risk_engine
-from backend.services.risk_model import calculate_risk_score
-from backend.services.social_service import social_service
-import logging
-
-logger = logging.getLogger(__name__)
+from services.data_service import get_environmental_data
+from services.risk_model import calculate_risk_score
+from services.social_service import social_service
+from utils.risk_ml import risk_engine
 
 class RiskEngine:
     async def analyze_risk(self, lat: float, lon: float):
+        # 1. Get real-world data (async)
         data = await get_environmental_data(lat, lon)
-        if "error" in data:
-            raise Exception(data["error"])
-        try:
-            ml_risk_val = risk_engine.predict_risk(data["temperature"], data["humidity"], data["pm25"])
-            ml_label = "High Risk" if ml_risk_val == 1 else "Low Risk"
-        except:
-            ml_risk_val = 0
-            ml_label = "Unavailable"
-        location_name = data.get("raw_weather", {}).get("name", "Local Area")
+        
+        # 2. Heuristic base assessment (now async)
+        score, label = await calculate_risk_score(data["raw_weather"], data["raw_aqi"])
+        
+        # 3. Social overlay (async)
+        location_name = data["raw_weather"].get("name", "Current Region")
         social_data = await social_service.get_social_stress(location_name)
-        base_assessment = await  calculate_risk_score(data["raw_weather"], data["raw_aqi"])
-        env_score = base_assessment["score"]
-        social_score = social_data["score"]
-        combined_score = round((env_score * 0.7) + (social_score * 0.3), 1)
-        final_severity = "Low"
-        if combined_score >= 8: final_severity = "Critical"
-        elif combined_score >= 6: final_severity = "High"
-        elif combined_score >= 4: final_severity = "Moderate"
-        return {
-            "score": combined_score,
-            "severity_label": final_severity,
-            "environmental_base": {"score": env_score, "label": base_assessment["level"]},
-            "social_overlay": social_data,
-            "ml_prediction": {"label": ml_label, "raw_value": ml_risk_val},
-            "contributing_factors": base_assessment["factors"],
-            "aggregated_metrics": data,
-            "raw_data": data
+        
+        # 4. ML Enhancement (sync)
+        ml_label_idx = risk_engine.predict_risk(
+            data["raw_weather"].get("main", {}).get("temp", 25),
+            data["raw_weather"].get("main", {}).get("humidity", 60),
+            data["raw_aqi"].get("list", [{}])[0].get("components", {}).get("pm2_5", 30)
+        )
+        ml_labels = ["Low Risk", "High Risk"]
+        
+        # Aggregate metrics
+        metrics = {
+            "temperature": data["raw_weather"].get("main", {}).get("temp"),
+            "humidity": data["raw_weather"].get("main", {}).get("humidity"),
+            "pm25": data["raw_aqi"].get("list", [{}])[0].get("components", {}).get("pm2_5", 30)
         }
+        
+        return {
+            "score": score,
+            "severity_label": label,
+            "contributing_factors": ["Heat" if metrics["temperature"] > 30 else "Normal"],
+            "aggregated_metrics": metrics,
+            "social_overlay": social_data,
+            "raw_data": data,
+            "ml_prediction": {"label": ml_labels[ml_label_idx], "raw_value": ml_label_idx},
+            "environmental_base": {"score": score, "level": label}
+        }
+
 environmental_risk_engine = RiskEngine()
