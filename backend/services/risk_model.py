@@ -1,28 +1,25 @@
-async def calculate_risk_score(environmental_data, social_score):
-    """
-    Calculates a hybrid risk score (1-10) by combining environmental data
-    and social stress sentiment.
+async def calculate_risk_score(weather, aqi):
+    # Heuristic scoring
+    score = 0
+    temp = weather.get("main", {}).get("temp", 25)
+    hum = weather.get("main", {}).get("humidity", 60)
     
-    Weights:
-    - Environmental Risks: 70%
-    - Social Stress: 30%
-    """
-    try:
-        # Environmental risk component (simplified for this model)
-        # In a real scenario, this would involve complex logic based on multiple factors
-        temp = environmental_data.get("temperature", 25)
-        aqi = environmental_data.get("aqi", 1)
-        humidity = environmental_data.get("humidity", 50)
-        
-        # Normalize environmental factors to 1-10 scale
-        # e.g., Temp > 35 is high risk, AQI > 4 is high risk
-        env_score = (min(temp / 40 * 10, 10) + (aqi * 2) + (humidity / 100 * 5)) / 3
-        env_score = min(10, max(1, env_score))
-        
-        # Hybrid calculation
-        final_score = (env_score * 0.7) + (social_score * 0.3)
-        
-        return round(final_score, 1)
-    except Exception as e:
-        return 5.0 # Neutral fallback
-
+    # Handle both real API and mock responses
+    aqi_val = aqi.get("main", {}).get("aqi", 2)
+    
+    if temp > 35: score += 3
+    elif temp > 30: score += 2
+    
+    if hum > 85: score += 2
+    
+    if aqi_val >= 4: score += 4
+    elif aqi_val >= 3: score += 2
+    
+    score = min(score, 10)
+    
+    severity = "Low"
+    if score >= 8: severity = "Critical"
+    elif score >= 6: severity = "High"
+    elif score >= 4: severity = "Moderate"
+    
+    return score, severity
