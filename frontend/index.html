@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoGuard AI - Environmental Risk Prediction</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- External JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-leaf"></i>
+                <span>EcoGuard AI</span>
+            </div>
+            <ul class="nav-links">
+                <li class="active" data-tab="dashboard">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </li>
+                <li data-tab="map">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    <span>Live Map</span>
+                </li>
+                <li data-tab="admin">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>Admin Panel</span>
+                </li>
+            </ul>
+            <div class="status-indicator">
+                <span class="dot online"></span>
+                System Online
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="content">
+            <header class="top-bar">
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="location-search" placeholder="Search location..." value="London">
+                    <button id="search-btn">Analyze</button>
+                </div>
+                <div class="user-profile">
+                    <div class="notification-bell">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <img src="https://ui-avatars.com/api/?name=Admin+User&background=0D8ABC&color=fff" alt="User"
+                        class="avatar">
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <section id="dashboard" class="view active">
+                <div class="dashboard-header">
+                    <h1>Environmental Overview</h1>
+                    <p class="date-display" id="current-date">Fetching data...</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card risk-card" id="risk-card">
+                        <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="stat-info">
+                            <h3>Risk Level</h3>
+                            <h2 id="risk-val">--</h2>
+                            <p id="risk-desc">Waiting for input...</p>
+                            <p class="ml-badge" id="ml-pred-val"><i class="fa-solid fa-robot"></i> ML: --</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fa-solid fa-temperature-half"></i></div>
+                        <div class="stat-info">
+                            <h3>Temperature</h3>
+                            <h2 id="temp-val">--°C</h2>
+                            <p class="sub-stat">H: <span id="temp-high">--</span>° L: <span id="temp-low">--</span>°</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fa-solid fa-wind"></i></div>
+                        <div class="stat-info">
+                            <h3>Air Quality</h3>
+                            <h2 id="aqi-val">--</h2>
+                            <p class="sub-stat">PM2.5: <span id="pm25-val">--</span> µg/m³</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fa-solid fa-droplet"></i></div>
+                        <div class="stat-info">
+                            <h3>Humidity</h3>
+                            <h2 id="humidity-val">--%</h2>
+                        </div>
+                    </div>
+                    <div class="stat-card social-card" id="social-card">
+                        <div class="stat-icon"><i class="fa-solid fa-users-viewfinder"></i></div>
+                        <div class="stat-info">
+                            <h3>Social Stress</h3>
+                            <h2 id="social-val">--</h2>
+                            <p class="sub-stat">Sentiment: <span id="social-sentiment">--</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-container">
+                    <div class="chart-wrapper">
+                        <h3>Risk Components Breakdown</h3>
+                        <canvas id="riskChart"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <h3>Hourly Forecast Trend</h3>
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="alerts-section">
+                    <h3>Recent Alerts</h3>
+                    <ul class="alert-list" id="alert-list">
+                        <!-- Alerts populated by JS -->
+                    </ul>
+                </div>
+
+                <div class="social-feed-section" style="margin-top: 2rem;">
+                    <h3><i class="fa-solid fa-hashtag"></i> Social Pulse</h3>
+                    <div id="social-feed" class="social-feed-container">
+                        <!-- Shouts via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Map View -->
+            <section id="map" class="view">
+                <div class="map-controls">
+                    <h2>Live Risk Map</h2>
+                    <div class="legend">
+                        <span class="dot low"></span> Low
+                        <span class="dot mod"></span> Moderate
+                        <span class="dot high"></span> High
+                        <span class="dot critical"></span> Critical
+                    </div>
+                </div>
+                <div id="map-container"></div>
+            </section>
+
+            <!-- Admin View -->
+            <section id="admin" class="view">
+                <h2>System Logs & Admin Controls</h2>
+
+                <div class="api-links"
+                    style="margin-bottom: 2rem; padding: 1rem; background: var(--card-bg); border-radius: 1rem; border: 1px solid var(--border);">
+                    <h3><i class="fa-solid fa-code"></i> Developer APIs</h3>
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <a href="/risk?lat=40.71&lon=-74.00" target="_blank"
+                            style="text-decoration: none; color: white; background: var(--accent); padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.9rem;">
+                            <i class="fa-solid fa-bolt"></i> Test /risk Endpoint
+                        </a>
+                        <a href="/docs" target="_blank"
+                            style="text-decoration: none; color: var(--text-primary); background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.9rem;">
+                            <i class="fa-solid fa-book"></i> API Documentation
+                        </a>
+                    </div>
+                </div>
+
+                <div class="admin-panel">
+                    <div class="admin-stats">
+                        <div class="mini-stat">Total Predictions: <span id="total-preds">1,245</span></div>
+                        <div class="mini-stat">API Health: <span class="text-success">Good</span></div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Timestamp</th>
+                                <th>Location</th>
+                                <th>Risk Score</th>
+                                <th>Risk Level</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body">
+                            <!-- Rows via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
