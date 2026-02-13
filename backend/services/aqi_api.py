@@ -6,7 +6,7 @@ load_dotenv()
 
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "mock_key")
 
-def fetch_aqi_data(lat, lon):
+async def fetch_aqi_data(lat, lon):
     """
     Fetches real-time Air Quality data from OpenWeatherMap Air Pollution API.
     Returns PM2.5, PM10, NO2, and O3.
