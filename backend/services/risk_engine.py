@@ -19,7 +19,7 @@ class RiskEngine:
             ml_label = "Unavailable"
         location_name = data.get("raw_weather", {}).get("name", "Local Area")
         social_data = await social_service.get_social_stress(location_name)
-        base_assessment = calculate_risk_score(data["raw_weather"], data["raw_aqi"])
+        base_assessment = await  calculate_risk_score(data["raw_weather"], data["raw_aqi"])
         env_score = base_assessment["score"]
         social_score = social_data["score"]
         combined_score = round((env_score * 0.7) + (social_score * 0.3), 1)
