@@ -1,4 +1,4 @@
-def calculate_risk_score(environmental_data, social_score):
+async def calculate_risk_score(environmental_data, social_score):
     """
     Calculates a hybrid risk score (1-10) by combining environmental data
     and social stress sentiment.
