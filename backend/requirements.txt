@@ -3,8 +3,3 @@ uvicorn
 requests
 python-dotenv
 httpx
-scikit-learn
-joblib
-pandas
-numpy
-textblob
