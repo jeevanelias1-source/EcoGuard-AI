@@ -1,8 +1,18 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
-from backend.services.data_service import get_environmental_data
-from backend.services.risk_engine import environmental_risk_engine
+import sys
+import os
+# Add current and parent directory to path for flexible imports
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+try:
+    from backend.services.data_service import get_environmental_data
+    from backend.services.risk_engine import environmental_risk_engine
+except ImportError:
+    from services.data_service import get_environmental_data
+from services.risk_engine import environmental_risk_engine
 import logging
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
