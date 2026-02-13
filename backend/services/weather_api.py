@@ -6,7 +6,7 @@ load_dotenv()
 
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "mock_key")
 
-def fetch_weather_data(lat, lon):
+async def fetch_weather_data(lat, lon):
     """
     Fetches real-time weather data from OpenWeatherMap API.
     If API key is missing or invalid, returns simulated data for demonstration.
